@@ -5,8 +5,7 @@ use Livewire\Volt\Volt;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\AdminController;
-
-// 1. RUTAS PÚBLICAS Y VISTAS ESTÁTICAS
+use App\Http\Controllers\CheckoutController;
 
 // Página de Inicio
 Route::get('/', function () {
@@ -38,24 +37,27 @@ Route::get('/contacto', function () {
     return view('contacto');
 })->name('contacto');
 
-// Rutas para el proceso de compra
-Route::post('/checkout/procesar', [CheckoutController::class, 'procesar'])->name('checkout.process');
-Route::get('/checkout/exito', [CheckoutController::class, 'exito'])->name('checkout.success');
 
 // 2. RUTAS CONECTADAS A CONTROLADORES (LÓGICA BD Y CRUD)
 
-// Catálogo: Carga los productos dinámicamente desde la base de datos
-Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
-
-// Autenticación: Procesar datos del formulario y cierre de sesión real
+// Autenticación: Registro, Login y Logout
+Route::post('/registro-interno', [AuthController::class, 'register'])->name('registro.post');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Proceso de Compra (Checkout)
+Route::post('/checkout/procesar', [CheckoutController::class, 'procesar'])->name('checkout.process');
+Route::get('/checkout/exito', [CheckoutController::class, 'exito'])->name('checkout.success');
+
+// Catálogo: Carga los productos dinámicamente desde la base de datos
+Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
 
 // Panel de Administración: Gestión CRUD de Inventario (Tabla 'productos')
 Route::get('/admin-dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 Route::post('/admin-dashboard/productos', [AdminController::class, 'store'])->name('admin.productos.store');
 Route::put('/admin-dashboard/productos/{id_producto}', [AdminController::class, 'update'])->name('admin.productos.update');
 Route::delete('/admin-dashboard/productos/{id_producto}', [AdminController::class, 'destroy'])->name('admin.productos.destroy');
+
 
 // 3. RUTAS POR DEFECTO DEL FRAMEWORK / LIVEWIRE VOLT
 

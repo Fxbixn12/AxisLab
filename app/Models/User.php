@@ -19,7 +19,11 @@ class User extends Authenticatable
         'apellido',
         'email',
         'password',
-        'id_rol',
+        'tipo_documento',
+        'numero_documento',
+        'telefono',
+        'fecha_nacimiento',
+        'id_rol', // Asegúrate de incluir el campo de rol para asign
     ];
 
     // Ocultar la contraseña al serializar datos por seguridad
