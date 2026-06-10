@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('carrito', function (Blueprint $table) {
             $table->id('id_carrito');
-            $table->unsignedBigInteger('id_usuario');          
+            $table->unsignedBigInteger('id_usuario')->unique();          
             $table->timestamps();
 
             $table->foreign('id_usuario')->references('id')->on('users');

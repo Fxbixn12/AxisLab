@@ -20,9 +20,23 @@ class User extends Authenticatable // implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'apellido',
         'email',
         'password',
+        'id_rol'
     ];
+
+    public function role(){
+        return $this->belongsTo(Role::class,"id_rol","id_rol");
+    }
+
+    public function carrito(){
+        return $this->hasOne(Carrito::class,"id_usuario","id");
+    }
+
+    public function pedidos(){
+        return $this->hasMany(Pedido::class, 'id_usuario', 'id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.
