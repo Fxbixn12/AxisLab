@@ -29,8 +29,9 @@ class AuthController extends Controller
                 return redirect()->intended(route('admin.dashboard'));
             }
 
-            // Si es un cliente regular, directo al catálogo
-            return redirect()->intended(route('catalogo'));
+            // Si es un cliente regular, directo al catálogo por URL limpia
+            // <-- CORREGIDO: Redirección directa por ruta web fija para evitar fallos 404
+            return redirect()->intended('/catalogo');
         }
 
         // Si falla, regresa con error
@@ -45,7 +46,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        // <-- CORREGIDO: Redirección directa para evitar fallos lógicos
+        return redirect('/iniciarsesion');
     }
 
     // --- NUEVA FUNCIÓN DE REGISTRO INTEGRADA Y ADAPTADA A TU VISTA ---
@@ -102,10 +104,11 @@ class AuthController extends Controller
             'id_rol' => 2, // Rol de cliente por defecto
         ]);
 
-        // 4. Loguear y redirigir
+        // 4. Loguear y redirigir de forma segura en caliente
         Auth::login($user);
         $request->session()->regenerate();
         
-        return redirect()->route('catalogo');
+        // <-- CORREGIDO: Redirección directa por URL para eliminar de raíz el bug Not Found (404)
+        return redirect('/catalogo');
     }
 }

@@ -13,11 +13,20 @@ class AdminController extends Controller
      */
     public function index()
     {
-        // Trae los productos junto con su categoría asignada (Siguiendo id_categoria)
-        $productos = Producto::with('categoria')->get();
+        // Trae los productos junto con su categoría asignada (Siguiendo id_categoria) ordenados por nombre
+        $productos = Producto::with('categoria')->orderBy('nombre')->get();
         $categorias = Categoria::all();
 
         return view('admin', compact('productos', 'categorias'));
+    }
+
+    /**
+     * --- NUEVO MÉTODO: RENDERIZA LA PÁGINA PARA CREAR UN NUEVO PRODUCTO ---
+     */
+    public function create()
+    {
+        $categorias = Categoria::all();
+        return view('admin-crear', compact('categorias'));
     }
 
     /**
@@ -42,6 +51,18 @@ class AdminController extends Controller
     }
 
     /**
+     * --- NUEVO MÉTODO: RENDERIZA LA PÁGINA DE EDICIÓN CARGANDO EL ID ESPECÍFICO ---
+     */
+    public function edit($id_producto)
+    {
+        // Usa tu clave primaria id_producto de forma explícita para evitar fallos de indexación
+        $producto = Producto::where('id_producto', $id_producto)->firstOrFail();
+        $categorias = Categoria::all();
+        
+        return view('admin-editar', compact('producto', 'categorias'));
+    }
+
+    /**
      * Actualiza un producto existente
      */
     public function update(Request $request, $id_producto)
@@ -55,7 +76,8 @@ class AdminController extends Controller
             'descripcion'  => 'required',
         ]);
 
-        $producto = Producto::findOrFail($id_producto);
+        // Busqueda robusta respetando tu clave primaria id_producto
+        $producto = Producto::where('id_producto', $id_producto)->firstOrFail();
         $producto->update($request->all());
 
         return redirect()->route('admin.dashboard')->with('success', 'Producto actualizado exitosamente.');
@@ -66,7 +88,8 @@ class AdminController extends Controller
      */
     public function destroy($id_producto)
     {
-        $producto = Producto::findOrFail($id_producto);
+        // Busqueda robusta respetando tu clave primaria id_producto
+        $producto = Producto::where('id_producto', $id_producto)->firstOrFail();
         $producto->delete();
 
         return redirect()->route('admin.dashboard')->with('success', 'Producto eliminado exitosamente.');

@@ -81,4 +81,49 @@ class CatalogoController extends Controller
 
         return back()->with('success', '"' . $producto->nombre . '" ha sido añadido a tu carrito de compras de manera exitosa.');
     }
+
+    // --- NUEVO MÉTODO PARA DISMINUIR CANTIDAD DESDE EL CARRITO ---
+    public function disminuirCantidad($id_producto)
+    {
+        $carrito = Session::get('carrito', []);
+        
+        if (isset($carrito[$id_producto])) {
+            if ($carrito[$id_producto]['qty'] > 1) {
+                $carrito[$id_producto]['qty']--;
+            } else {
+                unset($carrito[$id_producto]); // <-- Si la cantidad baja de 1, se remueve el producto por completo
+            }
+            Session::put('carrito', $carrito);
+        }
+        return back();
+    }
+
+    // --- NUEVO MÉTODO PARA INCREMENTAR CANTIDAD CON VALIDACIÓN DE STOCK ---
+    public function incrementarCantidad($id_producto)
+    {
+        $producto = Producto::where('id_producto', $id_producto)->firstOrFail();
+        $carrito = Session::get('carrito', []);
+
+        if (isset($carrito[$id_producto])) {
+            // <-- Validación estricta contra el stock real de la tabla 'productos'
+            if ($carrito[$id_producto]['qty'] >= $producto->stock) {
+                return back()->with('error', 'Lo sentimos, no hay más stock disponible para este producto.');
+            }
+            $carrito[$id_producto]['qty']++;
+            Session::put('carrito', $carrito);
+        }
+        return back();
+    }
+
+    // --- NUEVO MÉTODO PARA ELIMINAR UNA FILA DEL CARRITO ---
+    public function eliminarDelCarrito($id_producto)
+    {
+        $carrito = Session::get('carrito', []);
+        
+        if (isset($carrito[$id_producto])) {
+            unset($carrito[$id_producto]); // <-- Remueve el índice de la sesión del servidor
+            Session::put('carrito', $carrito);
+        }
+        return back();
+    }
 }
