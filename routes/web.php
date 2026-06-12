@@ -7,6 +7,8 @@ use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CheckoutController;
 
+// 1. VISTAS PÚBLICAS GENERALES
+
 // Página de Inicio
 Route::get('/', function () {
     return view('index');
@@ -22,50 +24,47 @@ Route::get('/carrito', function () {
     return view('carrito');
 })->name('carrito');
 
-// Proceso de Pago / Despacho (Vista)
-Route::get('/checkout', function () {
-    return view('checkout');
-})->name('checkout');
-
-// Confirmación de Compra Exitosa (Vista)
-Route::get('/success', function () {
-    return view('success');
-})->name('success');
-
 // Redirección de Contacto / WhatsApp (Vista)
 Route::get('/contacto', function () {
     return view('contacto');
 })->name('contacto');
+
+// Catálogo: Carga los productos dinámicamente desde la base de datos
+Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
+
+// Detalle del producto en una vista limpia del servidor (Reemplaza la modal de JS)
+Route::get('/catalogo/producto/{id_producto}', [CatalogoController::class, 'show'])->name('catalogo.show'); // <-- ¡AÑADIDO PARA EL NUEVO DISEÑO PHP PURO!
 
 
 // 2. RUTAS CONECTADAS A CONTROLADORES (LÓGICA BD Y CRUD)
 
 // Autenticación: Registro, Login y Logout
 Route::post('/registro-interno', [AuthController::class, 'register'])->name('registro.post');
-Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Proceso de Compra (Checkout)
-Route::post('/checkout/procesar', [CheckoutController::class, 'procesar'])->name('checkout.process');
-Route::get('/checkout/exito', [CheckoutController::class, 'exito'])->name('checkout.success');
-
-// Catálogo: Carga los productos dinámicamente desde la base de datos
-Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
-
-// Panel de Administración: Gestión CRUD de Inventario (Tabla 'productos')
-Route::get('/admin-dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-Route::post('/admin-dashboard/productos', [AdminController::class, 'store'])->name('admin.productos.store');
-Route::put('/admin-dashboard/productos/{id_producto}', [AdminController::class, 'update'])->name('admin.productos.update');
-Route::delete('/admin-dashboard/productos/{id_producto}', [AdminController::class, 'destroy'])->name('admin.productos.destroy');
+// Acción de agregar al carrito procesada por PHP puro usando sesiones en el servidor
+Route::post('/carrito/agregar/{id_producto}', [CatalogoController::class, 'agregarAlCarrito'])->name('carrito.agregar');
 
 
-// 3. RUTAS POR DEFECTO DEL FRAMEWORK / LIVEWIRE VOLT
+// 3. RUTAS PROTEGIDAS BAJO MIDDLEWARE (ZONAS CON RESTRICCIÓN DE ACCESO)
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
+// Filtro de Seguridad: Protege el proceso de pago y la gestión del Administrador
 Route::middleware(['auth'])->group(function () {
+
+    // Proceso de Compra (Checkout)
+    Route::get('/checkout', function () { return view('checkout'); })->name('checkout');
+    Route::get('/success', function () { return view('success'); })->name('success');
+    Route::post('/checkout/procesar', [CheckoutController::class, 'procesar'])->name('checkout.process');
+    Route::get('/checkout/exito', [CheckoutController::class, 'exito'])->name('checkout.success');
+
+    // Panel de Administración: Gestión CRUD de Inventario (Tabla 'productos')
+    Route::get('/admin-dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::post('/admin-dashboard/productos', [AdminController::class, 'store'])->name('admin.productos.store');
+    Route::put('/admin-dashboard/productos/{id_producto}', [AdminController::class, 'update'])->name('admin.productos.update');
+    Route::delete('/admin-dashboard/productos/{id_producto}', [AdminController::class, 'destroy'])->name('admin.productos.destroy');
+
+    // Configuraciones por Defecto de los Componentes Livewire Volt
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');

@@ -23,9 +23,9 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            // Cargar la relación con el rol para validar el nombre
-            // Si en tu base de datos el administrador se llama 'admin' o tiene id_rol 1:
-            if ($user->rol->nombre === 'admin' || $user->id_rol == 1) {
+            // Validar el rol del usuario utilizando directamente el id_rol de la base de datos
+            // Si en tu base de datos el administrador tiene id_rol 1:
+            if ($user->id_rol == 1) {
                 return redirect()->intended(route('admin.dashboard'));
             }
 
@@ -104,6 +104,8 @@ class AuthController extends Controller
 
         // 4. Loguear y redirigir
         Auth::login($user);
+        $request->session()->regenerate();
+        
         return redirect()->route('catalogo');
     }
 }
