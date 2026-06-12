@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\AuthController;
@@ -82,6 +81,19 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+
+
+    Route::get('/pagar/{id_pedido}', [MercadoPagoController::class, 'crearPago'])
+    ->name('mercadopago.pagar');
+
+    Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])
+        ->name('mercadopago.success');
+
+    Route::get('/mercadopago/failure', [MercadoPagoController::class, 'failure'])
+        ->name('mercadopago.failure');
+
+    Route::get('/mercadopago/pending', [MercadoPagoController::class, 'pending'])
+        ->name('mercadopago.pending');
 });
 
 require __DIR__.'/auth.php';
