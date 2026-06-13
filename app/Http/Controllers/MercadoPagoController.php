@@ -40,7 +40,6 @@ class MercadoPagoController extends Controller
 
     public function success()
     {
-        Session::forget('carrito');
         return "Pago exitoso";
     }
 

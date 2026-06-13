@@ -78,7 +78,7 @@ class CheckoutController extends Controller
 
             $totalGeneral = $totalProductos + $costoEnvio;
 
-            // 🔥 CORREGIDO: Ahora el registro guarda la información de a dónde y a quién enviar
+            //  CORREGIDO: Ahora el registro guarda la información de a dónde y a quién enviar
             // (Verifica que los nombres de las columnas coincidan con tu tabla 'pedidos')
             $idPedido = DB::table('pedidos')->insertGetId([
                 'id_usuario'    => auth()->id() ?? 1, 
