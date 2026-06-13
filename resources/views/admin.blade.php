@@ -21,7 +21,11 @@
             <h2 class="text-[2.2rem] font-[800] text-[#111827] leading-tight">Panel de Control</h2>
             <p class="text-[#6b7280] text-[0.95rem]">Gestiona el inventario global de tu plataforma AxisLab</p>
         </div>
-        <div>
+        <!--Grupo de botones alineados y responsivos -->
+        <div class="flex items-center gap-3 flex-wrap">
+            <a href="{{ route('admin.distritos.index') }}" class="bg-white text-gray-700 border border-gray-300 px-6 py-3 rounded-[10px] font-bold text-[0.95rem] hover:bg-gray-50 hover:text-[#f89a20] hover:border-[#f89a20]/50 hover:-translate-y-0.5 hover:shadow-md transition duration-200 inline-flex items-center gap-2 no-underline shadow-sm">
+                <i class="fa-solid fa-truck-fast text-[#f89a20]"></i> Gestionar Envíos
+            </a>
             <a href="{{ route('admin.productos.create') }}" class="bg-[#f89a20] text-white px-6 py-3 rounded-[10px] font-bold text-[0.95rem] hover:bg-[#e0891b] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#f89a20]/35 transition duration-200 inline-flex items-center gap-2 no-underline">
                 <i class="fa-solid fa-plus"></i> Añadir Producto
             </a>

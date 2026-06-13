@@ -37,10 +37,24 @@
             </div>
             
             <div class="relative mb-[18px]">
-                <select name="tipo_envio" class="w-full p-[14px_40px_14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium appearance-none focus:border-[#f89a20] transition" required>
-                    <option value="" disabled selected hidden>Seleccione la zona de destino...</option>
-                    <option value="lima_metro">Lima Metropolitana (S/. 7.00)</option>
-                    <option value="lima_prov">Lima Provincia (S/. 15.00)</option>
+                <select id="select-distrito" name="id_distrito" class="w-full p-[14px_40px_14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium appearance-none focus:border-[#f89a20] transition" required>
+                    <option value="" disabled selected hidden data-precio="0">Seleccione la zona de destino...</option>
+                    
+                    <optgroup label="LIMA METROPOLITANA">
+                        @foreach($distritos_metro as $distrito)
+                            <option value="{{ $distrito->id_distrito }}" data-precio="{{ $distrito->precio_envio }}">
+                                {{ $distrito->nombre }} (S/. {{ number_format($distrito->precio_envio, 2) }})
+                            </option>
+                        @endforeach
+                    </optgroup>
+                    
+                    <optgroup label="LIMA PROVINCIAS">
+                        @foreach($distritos_prov as $distrito)
+                            <option value="{{ $distrito->id_distrito }}" data-precio="{{ $distrito->precio_envio }}">
+                                {{ $distrito->nombre }} (S/. {{ number_format($distrito->precio_envio, 2) }})
+                            </option>
+                        @endforeach
+                    </optgroup>
                 </select>
                 <i class="fa-solid fa-chevron-down absolute right-[20px] top-1/2 -translate-y-1/2 text-[#111827] pointer-events-none text-[0.9rem]"></i>
             </div>
@@ -83,9 +97,15 @@
                     <span>Subtotal Artículos</span>
                     <span class="text-black font-[700]">S/. <span>{{ number_format($subtotal, 2) }}</span></span>
                 </div>
-                <div class="flex justify-between text-sm font-medium text-[#6b7280] bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200">
+                
+                <div class="flex justify-between text-sm font-medium text-[#6b7280] bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200 mb-[15px]">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-calculator text-[#f89a20]"></i> Costo de envío:</span>
-                    <span class="text-black font-bold">Calculado al procesar</span>
+                    <span id="costo-envio-txt" class="text-black font-bold">Calculado al procesar</span>
+                </div>
+
+                <div class="flex justify-between text-[1.6rem] font-[800] text-[#111827] pt-[15px] border-t border-solid border-[#e5e7eb]">
+                    <span>Total Final</span>
+                    <span id="total-txt" class="text-[#f89a20]">S/. {{ number_format($subtotal, 2) }}</span>
                 </div>
             </div>
             
@@ -94,5 +114,29 @@
             </button>
         </div>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectDistrito = document.getElementById('select-distrito');
+            const txtCostoEnvio = document.getElementById('costo-envio-txt');
+            const txtTotal = document.getElementById('total-txt');
+            
+            const subtotalArticulos = {{ $subtotal }};
+
+            selectDistrito.addEventListener('change', function () {
+                const opcionSeleccionada = selectDistrito.options[selectDistrito.selectedIndex];
+                const costoEnvio = parseFloat(opcionSeleccionada.getAttribute('data-precio')) || 0;
+
+                if (costoEnvio > 0) {
+                    txtCostoEnvio.textContent = `S/. ${costoEnvio.toFixed(2)}`;
+                    const totalDefinitivo = subtotalArticulos + costoEnvio;
+                    txtTotal.textContent = `S/. ${totalDefinitivo.toFixed(2)}`;
+                } else {
+                    txtCostoEnvio.textContent = 'Calculado al procesar';
+                    txtTotal.textContent = `S/. ${subtotalArticulos.toFixed(2)}`;
+                }
+            });
+        });
+    </script>
 
 @endsection
