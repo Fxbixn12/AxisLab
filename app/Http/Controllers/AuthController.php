@@ -55,7 +55,7 @@ class AuthController extends Controller
     {
         // 1. Definimos las reglas generales (las que aplican para todos)
         $reglas = [
-            'name' => ['required', 'string', 'max:255', 'regex:/^\s*([^\s]+\s+[^\s]+)\s*$/'], 
+            'name' => ['required', 'string', 'max:255'], 
             'tipo_documento' => 'required|string|in:DNI,CE,Pasaporte',
             'telefono' => 'required|string|max:9|unique:users,telefono', 
             'fecha_nacimiento' => 'required|date|before:-18 years', 

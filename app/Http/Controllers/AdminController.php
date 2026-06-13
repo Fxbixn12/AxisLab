@@ -38,8 +38,8 @@ class AdminController extends Controller
         $request->validate([
             'id_categoria' => 'required|exists:categorias,id_categoria',
             'nombre'       => 'required|max:100',
-            'precio'       => 'required|numeric',
-            'stock'        => 'required|integer',
+            'precio'       => 'required|numeric|min:0',
+            'stock'        => 'required|integer|min:0',
             'imagen'       => 'required|max:255',
             'descripcion'  => 'required',
         ]);

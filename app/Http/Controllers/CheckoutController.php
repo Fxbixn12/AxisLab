@@ -34,6 +34,16 @@ class CheckoutController extends Controller
     public function procesar(Request $request)
     {
         $carrito = Session::get('carrito', []);
+        
+        // 🔥 CORREGIDO: Validación de los datos del formulario de despacho
+        $request->validate([
+            'nombre'      => 'required|string|max:255',
+            'id_distrito' => 'required|integer',
+            'direccion'   => 'required|string|max:255',
+            'correo'      => 'required|email|max:255',
+            'telefono'    => 'required|string|max:20',
+        ]);
+
         $nombre = $request->input('nombre');
         $idDistrito = $request->input('id_distrito'); 
         $direccion = $request->input('direccion');
@@ -44,14 +54,12 @@ class CheckoutController extends Controller
             return redirect()->route('carrito')->with('error', 'Tu carrito está vacío. No podemos procesar el despacho.');
         }
 
-        // Buscamos el distrito por su clave primaria exacta
         $distrito = Distrito::where('id_distrito', $idDistrito)->where('activo', 1)->first();
 
         if (!$distrito) {
             return back()->with('error', 'El distrito seleccionado no es válido o no se encuentra disponible.');
         }
 
-        // Asignamos el precio real de la base de datos
         $costoEnvio = $distrito->precio_envio;
 
         DB::beginTransaction();
@@ -70,10 +78,17 @@ class CheckoutController extends Controller
 
             $totalGeneral = $totalProductos + $costoEnvio;
 
+            // 🔥 CORREGIDO: Ahora el registro guarda la información de a dónde y a quién enviar
+            // (Verifica que los nombres de las columnas coincidan con tu tabla 'pedidos')
             $idPedido = DB::table('pedidos')->insertGetId([
                 'id_usuario'    => auth()->id() ?? 1, 
                 'monto_total'   => $totalGeneral,     
-                'estado_pedido' => 'proceso',         
+                'estado_pedido' => 'proceso',
+                'nombre'        => $nombre,       // Mapeado
+                'id_distrito'   => $idDistrito,   // Mapeado
+                'direccion'     => $direccion,    // Mapeado
+                'correo'        => $correo,       // Mapeado
+                'telefono'      => $telefono,     // Mapeado
                 'created_at'    => now(), 
                 'updated_at'    => now()
             ]);
