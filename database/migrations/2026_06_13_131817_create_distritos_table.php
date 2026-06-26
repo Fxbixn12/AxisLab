@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('distritos', function (Blueprint $table) {
-            $table->id('id_distrito');
+            $table->id('id_distrito'); // bigint(20) UNSIGNED
             $table->string('nombre', 100);
             $table->decimal('precio_envio', 10, 2);
             $table->string('zona_tipo', 50);
-            $table->boolean('activo')->default(true);
+            $table->tinyInteger('activo')->default(1);
             $table->timestamps();
         });
     }

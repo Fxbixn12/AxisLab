@@ -6,25 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('pedidos', function (Blueprint $table) {
-            $table->id('id_pedido');
-            $table->unsignedBigInteger('id_usuario');
-            $table->decimal('monto_total',10,2);
-            $table->enum('estado_pedido',['proceso','finalizado'])->default('proceso');
-            $table->timestamps();
-
-            $table->foreign('id_usuario')->references('id')->on('users');
+            $table->id('id_pedido'); // bigint(20) UNSIGNED AUTO_INCREMENT
+            $table->string('codigo', 20)->nullable(); // varchar(20) Sí Nulo
+            $table->unsignedBigInteger('id_usuario'); // bigint(20) UNSIGNED
+            $table->decimal('monto_total', 10, 2); // decimal(10,2)
+            $table->integer('estado_pedido'); // int(11)
+            $table->string('nombre', 255); // varchar(255)
+            $table->unsignedBigInteger('id_distrito'); // bigint(20) UNSIGNED
+            $table->string('direccion', 255); // varchar(255)
+            $table->string('correo', 255); // varchar(255)
+            $table->string('telefono', 255); // varchar(255)
+            $table->timestamps(); // created_at y updated_at (timestamps Sí Nulos)
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('pedidos');
