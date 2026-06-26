@@ -1,31 +1,32 @@
 <?php
-
 namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory; // <-- Añadido para soporte de seeders
+use Illuminate\Database\Eloquent\Factories\HasFactory; 
 use Illuminate\Database\Eloquent\Model;
-
 class Producto extends Model
 {
     use HasFactory;
-
-    // Tabla asociada mapeada explícitamente
+    // Conectamos con la tabla productos de MySQL
     protected $table = 'productos';
-    
-    // Primary key personalizada de la base de datos
+    // Indicamos que la llave primaria es id_producto
     protected $primaryKey = 'id_producto';
-
-    // Columnas habilitadas para inserción masiva desde el AdminController
+    // Lista de campos que permitimos llenar desde los formularios
     protected $fillable = [
         'id_categoria',
         'nombre',
         'precio',
         'stock',
         'imagen',
-        'descripcion',
+        'descripcion',        
+        'material',
+        'colores',
+        'medida',
+        'peso',
+        'acabado',
+        'resistencia',
+        'usos_posibles',  
+        'activo', 
     ];
-
-    // Relación: Un producto pertenece a una categoría
+    // Relación para saber a qué categoría pertenece el producto
     public function categoria()
     {
         return $this->belongsTo(Categoria::class, 'id_categoria', 'id_categoria');

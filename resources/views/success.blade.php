@@ -5,8 +5,8 @@
 @section('contenido')
 
     <div class="mt-10 mb-4">
-        <a href="{{ route('home') }}" class="inline-flex items-center gap-3 text-[#111827] hover:text-[#f89a20] font-[800] text-2xl no-underline transition duration-150">
-            <i class="fa-solid fa-arrow-left"></i> Ir Al Inicio
+        <a href="{{ route('catalogo') }}" class="inline-flex items-center gap-3 text-[#111827] hover:text-[#f89a20] font-[800] text-2xl no-underline transition duration-150">
+            <i class="fa-solid fa-arrow-left"></i> Ir Al Catálogo
         </a>
     </div>
 
@@ -23,36 +23,45 @@
             </div>
         </div>
 
-        <h2 class="text-[3.5rem] font-[800] text-[#111827] mb-5 tracking-tight leading-none">¡Transacción exitosa!</h2>
+        <h2 class="text-[3.5rem] font-[800] text-[#111827] mb-[15px] tracking-tight leading-none">¡Transacción exitosa!</h2>
         
-        <p class="text-[1.25rem] text-[#111827] font-medium max-w-[600px] mb-6">
-            @if(session('success_order'))
-                {{ session('success_order') }}
-            @else
-                Tu pedido ha sido procesado de forma correcta en nuestro almacén técnico.
-            @endif
-        </p>
-        <p class="text-[#6b7280] text-base max-w-[500px] mb-8">
-            Hemos enviado a su dirección de correo electrónico el comprobante de pago electrónico junto con el detalle detallado de manufactura de sus piezas 3D.
+        <p class="text-[1.1rem] text-[#6b7280] font-medium max-w-[600px] mb-6">
+            Hemos enviado a su correo la información de su compra.
         </p>
 
-        {{-- Si la orden requiere un flete especial de provincia, Blade renderiza la alerta directamente --}}
-        @if(session('tipo_envio') === 'lima_prov' || request()->query('status') === 'approved')
-            <div class="bg-[#fff8e1] border-2 border-dashed border-[#ffe082] rounded-[18px] p-[25px_35px] max-w-[620px] shadow-sm animate-fade-in">
+        <div class="bg-[#f3f4f6] rounded-[18px] p-5 w-full max-w-[360px] text-center mb-8 border border-gray-100 flex flex-col gap-1 shadow-sm">
+            <span class="text-gray-500 font-bold text-sm">
+                Número de pedido: 
+                <span class="text-[#f89a20]">
+                    @if(session('success_code'))
+                        {{ session('success_code') }}
+                    @else
+                        {{ request()->query('external_reference') ?? 'AXIS-028438' }}
+                    @endif
+                </span>
+            </span>
+            <span class="text-gray-500 font-bold text-sm">
+                Total pagado: 
+                <span class="text-[#f89a20]">
+                    S/. @if(session('success_total'))
+                        {{ number_format(session('success_total'), 2) }}
+                    @else
+                        {{ number_format(request()->query('total_paid') ?? 40.00, 2) }}
+                    @endif
+                </span>
+            </span>
+        </div>
+
+        @if(session('tipo_envio') === 'lima_prov')
+            <div class="bg-[#fff8e1] border-2 border-dashed border-[#ffe082] rounded-[18px] p-[25px_35px] max-w-[620px] shadow-sm mb-10">
                 <h5 class="text-[#b78103] text-[1.15rem] font-bold mb-2 flex items-center justify-center gap-2.5">
                     <i class="fa-solid fa-triangle-exclamation"></i> ACCIÓN REQUERIDA DE COORDINACIÓN
                 </h5>
-                <p class="text-[#5d4037] text-[1rem] font-semibold Skinner leading-relaxed">
-                    Debido a la selección de envío interprovincial, recuerde ponerse en contacto de inmediato con nuestra central de soporte de AxisLab para validar la agencia de transportes externa y realizar el seguimiento de su encomienda.
+                <p class="text-[#5d4037] text-[1rem] font-semibold leading-relaxed">
+                    Due a la selección de envío interprovincial, recuerde ponerse en contacto de inmediato con nuestra central de soporte de AxisLab para validar la agencia de transportes externa y realizar el seguimiento de su encomienda.
                 </p>
             </div>
         @endif
-        
-        <div class="mt-10">
-            <a href="{{ route('catalogo') }}" class="bg-[#f89a20] text-white no-underline px-8 py-4 rounded-[12px] font-bold text-base hover:bg-[#e0891b] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#f89a20]/35 transition duration-200 inline-block">
-                <i class="fa-solid fa-cubes mr-2"></i> Seguir Explorando el Catálogo
-            </a>
-        </div>
     </div>
 
 @endsection

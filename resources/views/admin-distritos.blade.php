@@ -27,7 +27,6 @@
         <table class="w-full border-collapse text-left whitespace-nowrap">
             <thead>
                 <tr class="bg-[#f4f5f7] border-b border-[#e5e7eb]">
-                    <th class="p-[18px_24px] font-bold text-[0.9rem] text-[#111827] uppercase tracking-wider">ID</th>
                     <th class="p-[18px_24px] font-bold text-[0.9rem] text-[#111827] uppercase tracking-wider">Distrito / Provincia</th>
                     <th class="p-[18px_24px] font-bold text-[0.9rem] text-[#111827] uppercase tracking-wider">Zona Logística</th>
                     <th class="p-[18px_24px] font-bold text-[0.9rem] text-[#111827] uppercase tracking-wider">Costo de Envío</th>
@@ -38,12 +37,10 @@
             <tbody>
                 @forelse($distritos as $distrito)
                     <tr class="border-b border-[#e5e7eb] last:border-none hover:bg-gray-50/50 transition">
-                        <td class="p-4 px-6 text-[#6b7280]">#{{ $distrito->id_distrito }}</td>
-                        
                         <td class="p-4 px-6 font-bold text-[#111827]">{{ $distrito->nombre }}</td>
                         
                         <td class="p-4 px-6">
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $distrito->zona_tipo === 'Metropolitana' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600' }}">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $distrito->zona_tipo === 'Lima Metropolitana' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600' }}">
                                 {{ $distrito->zona_tipo }}
                             </span>
                         </td>
@@ -58,16 +55,16 @@
                         </td>
                         
                         <td class="p-4 px-6 text-center">
-                            <div class="flex gap-2 justify-center">
-                                <a href="{{ route('admin.distritos.edit', $distrito->id_distrito) }}" class="w-9 h-9 bg-[#fef3c7] text-[#d97706] rounded-lg flex items-center justify-center hover:bg-[#fde68a] transition duration-150 no-underline" title="Editar">
+                            <div class="flex gap-2 justify-center items-center">
+                                <a href="{{ route('admin.distritos.edit', $distrito->nombre) }}" class="w-9 h-9 bg-[#fef3c7] text-[#d97706] rounded-lg flex items-center justify-center hover:bg-[#fde68a] transition duration-150 no-underline" title="Editar">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
                                 
-                                <form action="{{ route('admin.distritos.destroy', $distrito->id_distrito) }}" method="POST" onsubmit="return confirm('¿Deseas remover este distrito del sistema?')">
+                                <form action="{{ route('admin.distritos.destroy', $distrito->nombre) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas ocultar este distrito del catálogo público?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="w-9 h-9 bg-[#fee2e2] text-rose-600 rounded-lg flex items-center justify-center hover:bg-[#fca5a5] transition duration-150 cursor-pointer border-none">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <button type="submit" class="w-9 h-9 bg-[#fee2e2] text-rose-600 rounded-lg flex items-center justify-center hover:bg-[#fca5a5] transition duration-150 cursor-pointer border-none" title="Ocultar distrito">
+                                        <i class="fa-solid fa-eye-slash"></i>
                                     </button>
                                 </form>
                             </div>
@@ -75,7 +72,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center p-8 text-[#6b7280]">
+                        <td colspan="5" class="text-center p-8 text-[#6b7280]">
                             <i class="fa-solid fa-truck-ramp-box text-2xl mb-2 text-[#f89a20] block"></i>
                             No hay zonas logísticas configuradas en la base de datos.
                         </td>

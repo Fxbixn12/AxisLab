@@ -10,32 +10,39 @@ use App\Models\Distrito;
 
 class CheckoutController extends Controller
 {
-    /**
-     * Muestra la vista del checkout con los distritos agrupados
-     */
     public function index()
     {
-        // Recuperamos los registros activos desde la BD mapeando la columna 'zona_tipo'
         $distritos_metro = Distrito::where('activo', 1)
-                                   ->where('zona_tipo', 'Metropolitana')
+                                   ->where('zona_tipo', 'Lima Metropolitana')
                                    ->get();
 
         $distritos_prov = Distrito::where('activo', 1)
                                   ->where('zona_tipo', 'Provincia')
                                   ->get();
 
-        // Enviamos las variables exactas que la vista Blade espera recibir
         return view('checkout', compact('distritos_metro', 'distritos_prov'));
     }
 
-    /**
-     * Procesa el formulario de despacho y registra la compra
-     */
+    // NUEVO MÉTODO: Actualiza el coste en caliente recargando la página sin JS
+    public function updateTarifa(Request $request)
+    {
+        $idDistrito = $request->input('id_distrito');
+        $distrito = Distrito::where('id_distrito', $idDistrito)->where('activo', 1)->first();
+
+        if ($distrito) {
+            Session::put('checkout_costo_envio', $distrito->precio_envio);
+            Session::put('checkout_id_distrito', $idDistrito);
+            Session::put('checkout_direccion', $request->input('direccion'));
+            Session::put('checkout_telefono', $request->input('telefono'));
+        }
+
+        return back()->withInput();
+    }
+
     public function procesar(Request $request)
     {
         $carrito = Session::get('carrito', []);
         
-        // 🔥 CORREGIDO: Validación de los datos del formulario de despacho
         $request->validate([
             'nombre'      => 'required|string|max:255',
             'id_distrito' => 'required|integer',
@@ -78,17 +85,15 @@ class CheckoutController extends Controller
 
             $totalGeneral = $totalProductos + $costoEnvio;
 
-            //  CORREGIDO: Ahora el registro guarda la información de a dónde y a quién enviar
-            // (Verifica que los nombres de las columnas coincidan con tu tabla 'pedidos')
             $idPedido = DB::table('pedidos')->insertGetId([
                 'id_usuario'    => auth()->id() ?? 1, 
                 'monto_total'   => $totalGeneral,     
-                'estado_pedido' => 'proceso',
-                'nombre'        => $nombre,       // Mapeado
-                'id_distrito'   => $idDistrito,   // Mapeado
-                'direccion'     => $direccion,    // Mapeado
-                'correo'        => $correo,       // Mapeado
-                'telefono'      => $telefono,     // Mapeado
+                'estado_pedido' => 1,
+                'nombre'        => $nombre,       
+                'id_distrito'   => $idDistrito,   
+                'direccion'     => $direccion,    
+                'correo'        => $correo,       
+                'telefono'      => $telefono,     
                 'created_at'    => now(), 
                 'updated_at'    => now()
             ]);
@@ -108,6 +113,9 @@ class CheckoutController extends Controller
 
                 $producto->decrement('stock', $item['qty']);
             }
+
+            // Limpiamos los datos flash temporales al proceder al pago seguro
+            Session::forget(['checkout_costo_envio', 'checkout_id_distrito', 'checkout_direccion', 'checkout_telefono']);
 
             DB::commit();
 

@@ -8,6 +8,10 @@
         $carrito = session()->get('carrito', []);
         $totalItems = collect($carrito)->sum('qty');
         $subtotal = collect($carrito)->sum(function($item) { return $item['price'] * $item['qty']; });
+        
+        // Recuperamos el costo de envío si ya se seleccionó un distrito en la recarga
+        $costoEnvio = session()->get('checkout_costo_envio', 0);
+        $totalFinal = $subtotal + $costoEnvio;
     @endphp
 
     @if(session('error'))
@@ -25,7 +29,7 @@
         </div>
     </div>
 
-    <form id="checkout-form" action="{{ route('checkout.process') }}" method="POST" class="flex flex-col lg:flex-row gap-[60px] mb-20 items-start">
+    <form action="{{ route('checkout.process') }}" method="POST" class="flex flex-col lg:flex-row gap-[60px] mb-20 items-start">
         @csrf
 
         <div class="flex-[1.2] w-full bg-[#e9eaec] rounded-[28px] p-[35px_40px]">
@@ -33,16 +37,16 @@
             <h4 class="text-[1.5rem] font-[800] mb-[25px] text-[#111827]">Dirección de Despacho</h4>
             
             <div class="relative mb-[18px]">
-                <input type="text" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="nombre" placeholder="Nombre completo del destinatario" required value="{{ Auth::user()->name ?? '' }}">
+                <input type="text" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="nombre" placeholder="Nombre completo del destinatario" required value="{{ old('nombre', Auth::user()->name ?? '') }}">
             </div>
             
             <div class="relative mb-[18px]">
-                <select id="select-distrito" name="id_distrito" class="w-full p-[14px_40px_14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium appearance-none focus:border-[#f89a20] transition" required>
-                    <option value="" disabled selected hidden data-precio="0">Seleccione la zona de destino...</option>
+                <select name="id_distrito" onchange="this.form.action='{{ route('checkout.update_tarifa') }}'; this.form.submit();" class="w-full p-[14px_40px_14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium appearance-none focus:border-[#f89a20] transition" required>
+                    <option value="" disabled {{ !old('id_distrito') && !session('checkout_id_distrito') ? 'selected' : '' }} hidden>Seleccione la zona de destino...</option>
                     
                     <optgroup label="LIMA METROPOLITANA">
                         @foreach($distritos_metro as $distrito)
-                            <option value="{{ $distrito->id_distrito }}" data-precio="{{ $distrito->precio_envio }}">
+                            <option value="{{ $distrito->id_distrito }}" {{ old('id_distrito', session('checkout_id_distrito')) == $distrito->id_distrito ? 'selected' : '' }}>
                                 {{ $distrito->nombre }} (S/. {{ number_format($distrito->precio_envio, 2) }})
                             </option>
                         @endforeach
@@ -50,7 +54,7 @@
                     
                     <optgroup label="LIMA PROVINCIAS">
                         @foreach($distritos_prov as $distrito)
-                            <option value="{{ $distrito->id_distrito }}" data-precio="{{ $distrito->precio_envio }}">
+                            <option value="{{ $distrito->id_distrito }}" {{ old('id_distrito', session('checkout_id_distrito')) == $distrito->id_distrito ? 'selected' : '' }}>
                                 {{ $distrito->nombre }} (S/. {{ number_format($distrito->precio_envio, 2) }})
                             </option>
                         @endforeach
@@ -60,15 +64,15 @@
             </div>
             
             <div class="relative mb-[18px]">
-                <input type="text" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="direccion" placeholder="Dirección exacta de entrega" required>
+                <input type="text" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="direccion" placeholder="Dirección exacta de entrega" required value="{{ old('direccion', session('checkout_direccion', '')) }}">
             </div>
             
             <div class="relative mb-[18px]">
-                <input type="email" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="correo" placeholder="Dirección de correo electrónico" required value="{{ Auth::user()->email ?? '' }}">
+                <input type="email" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="correo" placeholder="Dirección de correo electrónico" required value="{{ old('correo', Auth::user()->email ?? '') }}">
             </div>
             
             <div class="relative mb-[35px]">
-                <input type="text" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="telefono" placeholder="Teléfono de contacto" required maxlength="9">
+                <input type="text" class="w-full p-[14px_20px] bg-white border border-transparent rounded-[12px] text-[0.95rem] text-[#111827] outline-none font-medium focus:border-[#f89a20] transition" name="telefono" placeholder="Teléfono de contacto" required maxlength="9" value="{{ old('telefono', session('checkout_telefono', '')) }}">
             </div>
 
             <h4 class="text-[1.5rem] font-[800] mb-[25px] text-[#111827]">Garantía de Pago</h4>
@@ -95,17 +99,17 @@
             <div class="border-t border-[#e5e7eb] pt-[25px] mb-[35px]">
                 <div class="flex justify-between text-[1.4rem] font-medium text-[#6b7280] mb-[15px]">
                     <span>Subtotal Artículos</span>
-                    <span class="text-black font-[700]">S/. <span>{{ number_format($subtotal, 2) }}</span></span>
+                    <span class="text-black font-[700]">S/. {{ number_format($subtotal, 2) }}</span>
                 </div>
                 
                 <div class="flex justify-between text-sm font-medium text-[#6b7280] bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200 mb-[15px]">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-calculator text-[#f89a20]"></i> Costo de envío:</span>
-                    <span id="costo-envio-txt" class="text-black font-bold">Calculado al procesar</span>
+                    <span class="text-black font-bold">S/. {{ number_format($costoEnvio, 2) }}</span>
                 </div>
 
                 <div class="flex justify-between text-[1.6rem] font-[800] text-[#111827] pt-[15px] border-t border-solid border-[#e5e7eb]">
                     <span>Total Final</span>
-                    <span id="total-txt" class="text-[#f89a20]">S/. {{ number_format($subtotal, 2) }}</span>
+                    <span class="text-[#f89a20]">S/. {{ number_format($totalFinal, 2) }}</span>
                 </div>
             </div>
             
@@ -114,29 +118,4 @@
             </button>
         </div>
     </form>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const selectDistrito = document.getElementById('select-distrito');
-            const txtCostoEnvio = document.getElementById('costo-envio-txt');
-            const txtTotal = document.getElementById('total-txt');
-            
-            const subtotalArticulos = {{ $subtotal }};
-
-            selectDistrito.addEventListener('change', function () {
-                const opcionSeleccionada = selectDistrito.options[selectDistrito.selectedIndex];
-                const costoEnvio = parseFloat(opcionSeleccionada.getAttribute('data-precio')) || 0;
-
-                if (costoEnvio > 0) {
-                    txtCostoEnvio.textContent = `S/. ${costoEnvio.toFixed(2)}`;
-                    const totalDefinitivo = subtotalArticulos + costoEnvio;
-                    txtTotal.textContent = `S/. ${totalDefinitivo.toFixed(2)}`;
-                } else {
-                    txtCostoEnvio.textContent = 'Calculado al procesar';
-                    txtTotal.textContent = `S/. ${subtotalArticulos.toFixed(2)}`;
-                }
-            });
-        });
-    </script>
-
 @endsection
