@@ -11,7 +11,7 @@ class AdminDistritoController extends Controller
     // Traemos todos los distritos de la base de datos ordenados de la A a la Z
     public function index()
     {
-        $distritos = Distrito::orderBy('nombre')->get();
+        $distritos = Distrito::orderBy('nombre', 'asc')->get();
         return view('admin-distritos', compact('distritos'));
     }
 

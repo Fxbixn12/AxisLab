@@ -14,10 +14,12 @@ class CheckoutController extends Controller
     {
         $distritos_metro = Distrito::where('activo', 1)
                                    ->where('zona_tipo', 'Lima Metropolitana')
+                                   ->orderBy('nombre')
                                    ->get();
 
         $distritos_prov = Distrito::where('activo', 1)
                                   ->where('zona_tipo', 'Provincia')
+                                  ->orderBy('nombre')
                                   ->get();
 
         return view('checkout', compact('distritos_metro', 'distritos_prov'));

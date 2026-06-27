@@ -9,7 +9,7 @@ class Pedido extends Model
     protected $table = 'pedidos';
     protected $primaryKey = 'id_pedido';
 
-    // Campos permitidos para asignación masiva incluyendo el nuevo codigo
+    // Campos permitidos para asignación masiva incluyendo el nuevo codigo y datos de despacho
     protected $fillable = [
         'id_usuario',
         'codigo',
@@ -22,7 +22,6 @@ class Pedido extends Model
         'telefono'
     ];
 
-    // Retorna el texto formal sin emojis según el número de estado
     public function getEstadoTextoAttribute()
     {
         $estados = [

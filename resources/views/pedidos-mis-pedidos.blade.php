@@ -35,13 +35,13 @@
                             <i class="fa-solid fa-boxes-stacked"></i> Productos
                         </h4>
                         
-                        @foreach($pedido->detalles as $detalle)
+                        @foreach($pedido->detalles_agrupados as $detalle)
                             <div class="flex items-center justify-between border border-gray-100 rounded-xl p-4 bg-white mb-3">
                                 <div class="flex items-center gap-4">
-                                    <img src="{{ asset($detalle->producto->imagen ?? 'img/productos/default.jpg') }}" class="w-14 h-14 rounded-lg object-cover bg-gray-50 border">
+                                    <img src="{{ $detalle->imagen_producto }}" class="w-14 h-14 rounded-lg object-cover bg-gray-50 border">
                                     <div class="flex flex-col">
-                                        <span class="font-bold text-[#111827] text-sm">{{ $detalle->producto->nombre ?? 'Producto Removido' }}</span>
-                                        <span class="text-xs text-gray-400 font-semibold">S/. {{ number_format($detalle->precio_unitario ?? $detalle->producto->precio, 2) }} c/u</span>
+                                        <span class="font-bold text-[#111827] text-sm">{{ $detalle->nombre_producto }}</span>
+                                        <span class="text-xs text-gray-400 font-semibold">S/. {{ number_format($detalle->precio_unitario, 2) }} c/u</span>
                                     </div>
                                 </div>
                                 <span class="font-bold text-gray-700 text-sm bg-gray-50 px-2.5 py-1 rounded-md">x{{ $detalle->cantidad }}</span>

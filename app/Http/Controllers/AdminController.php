@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Producto;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
@@ -9,7 +11,7 @@ class AdminController extends Controller
     public function index()
     {
         // Jalamos productos con su categoria para evitar la sobrecarga N+1 en la base de datos relacional
-        $productos = Producto::with('categoria')->orderBy('nombre')->get();
+        $productos = Producto::with('categoria')->orderBy('nombre', 'asc')->get();
         $categorias = Categoria::all();
         return view('admin', compact('productos', 'categorias'));
     }
@@ -22,13 +24,13 @@ class AdminController extends Controller
 
     public function store(Request $request)
     {
-        // Validamos rigurosamente que las entradas de texto coincidan con las restricciones de la tabla
+        // Validamos rigurosamente que las entradas coincidan con las restricciones de la tabla y el formato del archivo físico
         $request->validate([
             'id_categoria'  => 'required|exists:categorias,id_categoria',
             'nombre'        => 'required|max:100',
             'precio'        => 'required|numeric|min:0',
             'stock'         => 'required|integer|min:0',
-            'imagen'        => 'required|max:255',
+            'imagen'        => 'required|image|mimes:jpeg,png,jpg,webp|max:2048', // Validación estricta del archivo binario
             'descripcion'   => 'required',
             'material'      => 'nullable|string|max:50',
             'colores'       => 'nullable|string|max:50',
@@ -38,8 +40,24 @@ class AdminController extends Controller
             'resistencia'   => 'nullable|string|max:50',
             'usos_posibles' => 'nullable|string',
         ]);
+
         $datos = $request->all();
         $datos['activo'] = 1; // Forzamos a que el registro nazca activo en stock
+
+        // Lógica de procesamiento y guardado físico del archivo de imagen examinado
+        if ($request->hasFile('imagen')) {
+            $archivo = $request->file('imagen');
+            
+            // Creamos un identificador único basado en tiempo de UNIX para que no se dupliquen nombres de archivos
+            $nombreImagen = time() . '.' . $archivo->getClientOriginalExtension();
+            
+            // Almacenamos el archivo físico dentro de la carpeta correspondiente en el public
+            $archivo->move(public_path('img/productos'), $nombreImagen);
+            
+            // Sobrescribimos el campo del array con la ruta relativa que se enviará como String a la base de datos
+            $datos['imagen'] = 'img/productos/' . $nombreImagen;
+        }
+
         Producto::create($datos);
         return redirect()->route('admin.dashboard')->with('success', 'Producto creado exitosamente.');
     }
@@ -53,12 +71,13 @@ class AdminController extends Controller
 
     public function update(Request $request, $id_producto)
     {
+        // Validamos de forma idéntica, pero permitimos que la imagen sea opcional (nullable) al editar
         $request->validate([
             'id_categoria'  => 'required|exists:categorias,id_categoria',
             'nombre'        => 'required|max:100',
-            'precio'        => 'required|numeric',
-            'stock'         => 'required|integer',
-            'imagen'        => 'required|max:255',
+            'precio'        => 'required|numeric|min:0',
+            'stock'         => 'required|integer|min:0',
+            'imagen'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Archivo físico opcional al actualizar
             'descripcion'   => 'required',
             'material'      => 'nullable|string|max:50',
             'colores'       => 'nullable|string|max:50',
@@ -69,15 +88,35 @@ class AdminController extends Controller
             'usos_posibles' => 'nullable|string',
             'activo'        => 'required|boolean',
         ]);
+
         $producto = Producto::where('id_producto', $id_producto)->firstOrFail();
-        $producto->update($request->all());
+        $datos = $request->all();
+
+        // Lógica para procesar la nueva imagen si decidiste examinar y subir una nueva desde tu PC
+        if ($request->hasFile('imagen')) {
+            $archivo = $request->file('imagen');
+            
+            // Generamos un identificador único basado en tiempo
+            $nombreImagen = time() . '.' . $archivo->getClientOriginalExtension();
+            
+            // Guardamos el archivo físico en el servidor de la app
+            $archivo->move(public_path('img/productos'), $nombreImagen);
+            
+            // Seteamos la nueva ruta local que se actualizará en la base de datos
+            $datos['imagen'] = 'img/productos/' . $nombreImagen;
+        } else {
+            // Si no seleccionaste ningún archivo nuevo, conservamos estrictamente la ruta de la imagen que ya tenía
+            $datos['imagen'] = $producto->imagen;
+        }
+
+        $producto->update($datos);
         return redirect()->route('admin.dashboard')->with('success', 'Producto actualizado exitosamente.');
     }
 
     public function destroy($id_producto)
     {
         $producto = Producto::where('id_producto', $id_producto)->firstOrFail();
-        // Aplicamos borrado logico para mantener la integridad referencial con la tabla de ventas
+        // Aplicamos borrado lógico para mantener la integridad referencial con la tabla de ventas
         $producto->update(['activo' => 0]);
         return redirect()->route('admin.dashboard')->with('success', 'Producto desactivado exitosamente.');
     }
@@ -85,7 +124,7 @@ class AdminController extends Controller
     // Control de categorías
     public function createCategoria()
     {
-        return view('admin-categorias-crear');
+        return view('admin-categories-crear');
     }
 
     public function storeCategoria(Request $request)
@@ -97,23 +136,19 @@ class AdminController extends Controller
             'nombre' => $request->nombre,
             'activo' => 1
         ]);
-        // Redirige directamente de vuelta a la tabla de gestión de categorías
         return redirect()->route('admin.categorias.edit')->with('success', 'Categoría creada exitosamente.');
     }
 
-    // Carga la vista dedicada de Gestión de Categorías
     public function editCategoria()
     {
         $categorias = Categoria::all();
         return view('admin-categorias-editar', compact('categorias'));
     }
 
-    // Actualiza por ID discriminando el cambio de estado o texto de forma independiente
     public function updateCategoria(Request $request, $id_categoria)
     {
         $categoria = Categoria::where('id_categoria', $id_categoria)->firstOrFail();
 
-        // Caso 1: Alternar visibilidad (Desactivar/Activar) sin requerir validación de nombre
         if ($request->has('toggle_status')) {
             $categoria->update([
                 'activo' => $request->activo
@@ -122,7 +157,6 @@ class AdminController extends Controller
             return redirect()->route('admin.categorias.edit')->with('success', $mensaje);
         }
 
-        // Caso 2: Sobrescribir texto del nombre
         $request->validate([
             'nombre' => 'required|max:100|unique:categorias,nombre,' . $id_categoria . ',id_categoria',
         ]);

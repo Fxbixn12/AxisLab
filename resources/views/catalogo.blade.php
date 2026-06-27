@@ -54,15 +54,19 @@
                     </div>
                     <div class="mt-auto flex flex-col gap-[10px]">
                         <a href="{{ route('catalogo', ['modal_id' => $producto->id_producto, 'categoria' => request('categoria'), 'search' => request('search')]) }}#modal-detalles" 
-                           class="w-full py-[12px] bg-[#55575e] text-white font-[700] rounded-[10px] text-center text-[0.95rem] hover:bg-gray-700 transition duration-200">
+                           class="w-full py-[12px] bg-[#55575e] text-white font-[700] rounded-[10px] text-center text-[0.95rem] hover:bg-gray-700 transition duration-200 no-underline">
                             Ver Detalles
                         </a>
-                        <form action="{{ route('carrito.agregar', $producto->id_producto) }}" method="POST" class="w-full">
-                            @csrf
-                            <button type="submit" class="w-full py-[12px] bg-[#f89a20] text-white font-[700] rounded-[10px] text-[0.95rem] hover:bg-[#e0891b] transition duration-200 hover:-translate-y-[2px] hover:shadow-[0_5px_15px_rgba(248,154,32,0.35)] disabled:bg-[#d1d5db] disabled:text-[#9ca3af] disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" {{ ($isAgotado || $isAdmin) ? 'disabled' : '' }}>
-                                {{ $isAdmin ? 'Modo Admin' : ($isAgotado ? 'Agotado' : 'Agregar al carrito') }}
-                            </button>
-                        </form>
+                        
+                        <!-- Condicional: El botón de agregar al carrito solo aparece si NO es administrador -->
+                        @if(!$isAdmin)
+                            <form action="{{ route('carrito.agregar', $producto->id_producto) }}" method="POST" class="w-full">
+                                @csrf
+                                <button type="submit" class="w-full py-[12px] bg-[#f89a20] text-white font-[700] rounded-[10px] text-[0.95rem] hover:bg-[#e0891b] transition duration-200 hover:-translate-y-[2px] hover:shadow-[0_5px_15px_rgba(248,154,32,0.35)] disabled:bg-[#d1d5db] disabled:text-[#9ca3af] disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" {{ $isAgotado ? 'disabled' : '' }}>
+                                    {{ $isAgotado ? 'Agotado' : 'Agregar al carrito' }}
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             @empty
@@ -79,6 +83,7 @@
             </a>
         </div>
     </section>
+
     @if(request()->has('modal_id'))
         @php
             $modalProducto = $productos->firstWhere('id_producto', request('modal_id'));
@@ -136,18 +141,15 @@
                             </div>
                         </div>
                         <div class="flex flex-col gap-4 w-full mt-auto">
-                            <form action="{{ route('carrito.agregar', $modalProducto->id_producto) }}" method="POST" class="w-full">
-                                @csrf
-                                @if($modalIsAdmin)
-                                    <button type="button" class="w-full py-4 bg-[#cbd5e1] text-gray-500 font-bold rounded-[12px] text-[1rem] cursor-not-allowed border-none text-center block tracking-wide">
-                                        Modo Admin
-                                    </button>
-                                @else
+                            <!-- Condicional: El botón de agregar al carrito solo aparece en el modal si NO es administrador -->
+                            @if(!$modalIsAdmin)
+                                <form action="{{ route('carrito.agregar', $modalProducto->id_producto) }}" method="POST" class="w-full">
+                                    @csrf
                                     <button type="submit" class="w-full py-4 bg-[#f89a20] text-white hover:bg-[#e0891b] hover:-translate-y-[2px] hover:shadow-[0_5px_15px_rgba(248,154,32,0.35)] disabled:bg-[#d1d5db] disabled:text-[#9ca3af] disabled:cursor-not-allowed transition duration-200 font-bold rounded-[12px] text-[1rem]" {{ $modalAgotado ? 'disabled' : '' }}>
                                         {{ $modalAgotado ? 'Agotado' : 'Agregar al carrito' }}
                                     </button>
-                                @endif
-                            </form>
+                                </form>
+                            @endif
                             @if($modalProducto->usos_posibles)
                                 <div>
                                     <h4 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">POSIBLES USOS</h4>
